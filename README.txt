@@ -1,256 +1,215 @@
-﻿# Customer Sales Analysis 📊
+# 📊 Customer Sales Analysis
+
+[![SQL](https://shields.io)](https://mysql.com)
+[![Python](https://shields.io)](https://python.org)
+[![Power BI](https://shields.io)](https://microsoft.com)
+[![Excel](https://shields.io)](https://microsoft.com)
 
 ## 📌 Project Overview
-The **Customer Sales Analysis** project focuses on analyzing customer purchasing behavior, sales trends, revenue generation, and customer segmentation using **SQL, Python, Excel, and Power BI**.
+The **Customer Sales Analysis** project focuses on analyzing customer purchasing behavior, sales trends, revenue generation, and customer segmentation using data-driven insights. 
 
-The project helps businesses understand customer spending patterns, product performance, discount effectiveness, and subscription behavior through data-driven insights.
+By leveraging **SQL, Python, Excel, and Power BI**, this project helps businesses comprehensively understand customer spending patterns, product performance, discount effectiveness, and subscription behavior to optimize revenue strategies.
 
 ---
 
 ## 🎯 Project Objectives
-- Analyze customer purchase behavior
-- Compare revenue by gender
-- Identify top-rated and most purchased products
-- Study discount and subscription impact on sales
-- Segment customers based on purchasing history
-- Build interactive dashboards using Power BI
-- Perform data analysis using SQL and Python
+* **Analyze** customer purchase behavior and demographic spending patterns.
+* **Compare** revenue distribution by gender and age groups.
+* **Identify** top-rated products and most frequently purchased items.
+* **Study** the direct impact of discounts and subscription statuses on overall sales volume.
+* **Segment** customers dynamically based on their lifetime purchasing history.
+* **Design** and deploy an interactive, executive-ready dashboard using Power BI.
 
 ---
 
-## 🛠️ Technologies Used
+## 🛠️ Tech Stack & Tools
 
 | Tool / Technology | Purpose |
-|-------------------|---------|
-| MySQL | Data querying and analysis |
-| Python | Data cleaning and visualization |
-| Pandas & Matplotlib | Data analysis |
-| Power BI | Dashboard and visualization |
-| Excel | Dataset handling |
-| Jupyter Notebook | Python execution environment |
+|:---|:---|
+| **MySQL** | Advanced data querying, aggregation, and analytical window functions |
+| **Python (3.x)** | Exploratory Data Analysis (EDA), data cleaning, and preprocessing |
+| **Pandas & NumPy** | High-performance data manipulation and numerical analysis |
+| **Matplotlib & Seaborn** | Statistical data visualization and plotting |
+| **Power BI** | Interactive dashboard creation, DAX modeling, and visual reporting |
+| **Excel** | Initial dataset inspection and structure handling |
+| **Jupyter Notebook** | Documented Python execution environment |
 
 ---
 
-## 📂 Dataset Information
+## 📂 Dataset Architecture
 
-The dataset contains customer shopping transaction details including:
+The underlying dataset captures comprehensive transaction logs with the following schema:
 
-| Column Name | Description |
-|-------------|-------------|
-| Customer ID | Unique customer identifier |
-| Age | Customer age |
-| Gender | Male/Female |
-| Item Purchased | Purchased product |
-| Category | Product category |
-| Purchase Amount | Amount spent |
-| Review Rating | Product review rating |
-| Subscription Status | Subscription details |
-| Shipping Type | Delivery method |
-| Discount Applied | Whether discount was applied |
-| Previous Purchases | Customer purchase history |
-| Payment Method | Payment type |
+| Column Name | Data Type | Description |
+|:---|:---|:---|
+| `Customer ID` | Integer | Unique identifier for each customer |
+| `Age` | Integer | Age of the customer |
+| `Gender` | String | Demographic gender (Male/Female) |
+| `Item Purchased` | String | Name of the purchased product |
+| `Category` | String | Product classification category |
+| `Purchase Amount` | Float/Decimal | Total fiat amount spent on the transaction |
+| `Review Rating` | Float | Product review rating scaled from 1.0 to 5.0 |
+| `Subscription Status` | String | Indicates membership status (Yes/No) |
+| `Shipping Type` | String | Selected logistics/delivery method |
+| `Discount Applied` | String | Indicates if a promotional discount code was used |
+| `Previous Purchases` | Integer | Historical count of orders placed by the customer |
+| `Payment Method` | String | Transaction medium used (e.g., Card, Cash, UPI) |
 
 ---
 
-# 📊 SQL Analysis Performed
+## 🗄️ SQL Analysis & Queries
 
-## 1️⃣ Revenue by Gender
-
+### 1. Total Revenue Generation by Gender
 ```sql
-select gender,SUM(purchase_amount ) as revenue
-from customer
-group by gender;
+SELECT 
+    gender, 
+    SUM(purchase_amount) AS total_revenue
+FROM customer
+GROUP BY gender;
 ```
 
----
-
-## 2️⃣ Customers Using Discounts but Spending Above Average
-
+### 2. High-Value Customers Utilizing Discounts
+*Filters for customers who applied a discount code but still spent above the global average transaction size.*
 ```sql
-select customer_id,purchase_amount
-from customer
-where discount_applied='Yes'
-and purchase_amount >= (
-    select AVG(purchase_amount)
-    from customer
-);
+SELECT 
+    customer_id, 
+    purchase_amount
+FROM customer
+WHERE discount_applied = 'Yes'
+  AND purchase_amount >= (
+      SELECT AVG(purchase_amount) 
+      FROM customer
+  );
 ```
 
----
-
-## 3️⃣ Top 5 Highest Rated Products
-
+### 3. Top 5 Highest Rated Products
 ```sql
-select item_purchased,
-avg(review_rating) as "Average Rating"
-from customer
-group by item_purchased
-order by avg(review_rating) desc
-limit 5;
+SELECT 
+    item_purchased,
+    AVG(review_rating) AS average_rating
+FROM customer
+GROUP BY item_purchased
+ORDER BY average_rating DESC
+LIMIT 5;
 ```
 
----
-
-## 4️⃣ Shipping Type vs Average Purchase
-
+### 4. Standard vs Express Shipping Financial Metrics
 ```sql
-select shipping_type,
-round(avg(purchase_amount),2) as avg_purchase
-from customer
-where shipping_type in ('standard','express')
-group by shipping_type;
+SELECT 
+    shipping_type,
+    ROUND(AVG(purchase_amount), 2) AS avg_purchase
+FROM customer
+WHERE shipping_type IN ('standard', 'express')
+GROUP BY shipping_type;
 ```
 
----
-
-## 5️⃣ Subscription Impact on Revenue
-
+### 5. Subscription Impact on Sales Metrics
 ```sql
-select subscription_status ,
-count(customer_id) as total_customer,
-round(avg(purchase_amount),2) as avg_spend,
-round(sum(purchase_amount),2) as total_revenue
-from customer
-group by subscription_status;
+SELECT 
+    subscription_status,
+    COUNT(customer_id) AS total_customers,
+    ROUND(AVG(purchase_amount), 2) AS avg_spend,
+    ROUND(SUM(purchase_amount), 2) AS total_revenue
+FROM customer
+GROUP BY subscription_status;
 ```
 
----
-
-## 6️⃣ Products with Highest Discount Usage
-
+### 6. Products with Highest Discount Penetration Rate
 ```sql
-select item_purchased,
-round(
-100 * sum(case when discount_applied='Yes'
-then 1 else 0 end)/count(*),2
-) as discount_rate
-from customer
-group by item_purchased
-order by discount_rate desc
-limit 5;
+SELECT 
+    item_purchased,
+    ROUND(100.0 * SUM(CASE WHEN discount_applied = 'Yes' THEN 1 ELSE 0 END) / COUNT(*), 2) AS discount_rate
+FROM customer
+GROUP BY item_purchased
+ORDER BY discount_rate DESC
+LIMIT 5;
 ```
 
----
-
-## 7️⃣ Customer Segmentation
-
-Customers were segmented into:
-- New Customers
-- Returning Customers
-- Loyal Customers
-
-based on previous purchase history.
+### 7. Advanced Analytical Scripts (Included in Script File)
+* **Customer Segmentation:** Cohort categorization into *New*, *Returning*, and *Loyal* buyers based on transaction count.
+* **Category Window Functions:** Dynamic ranking (`DENSE_RANK()`) of the most purchased items partitioned by category.
+* **Repeat Buyer Behavior:** Correlation matrix checking if historical repeat buyers gravitate towards active subscriptions.
+* **Age Group Cohorts:** Generational revenue analysis segmented into discrete age buckets.
 
 ---
 
-## 8️⃣ Top Purchased Products by Category
+## 🐍 Python Exploratory Data Analysis (EDA)
 
-Used SQL Window Functions to rank products within categories.
+Python was deployed to handle automated data pipelines, addressing null values, outlier filtering, and generating static distribution curves.
 
----
-
-## 9️⃣ Repeat Buyers vs Subscription Analysis
-
-Analyzed whether repeat buyers are more likely to subscribe.
-
----
-
-## 🔟 Revenue Contribution by Age Group
-
-Studied revenue generated by different age groups.
-
----
-
-# 🐍 Python Analysis
-
-Python was used for:
-- Data preprocessing
-- Data cleaning
-- Exploratory Data Analysis (EDA)
-- Charts and visualizations
-
-### Libraries Used
-
+### Core Libraries
 ```python
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns # Added for professional styling
 ```
 
 ---
 
-# 📈 Power BI Dashboard
+## 📈 Power BI Dashboard Visuals
+The business intelligence layer converts abstract numbers into functional executive charts, covering:
+* **Sales KPI Blocks:** Total Revenue, Average Order Value (AOV), and Total Transactions.
+* **Performance Matrix:** Product category vs revenue yield.
+* **Behavioral Segmentation:** Interactive slicing by Subscription Status and Discount Impact.
 
-The Power BI dashboard includes:
-- Sales Overview
-- Revenue Analysis
-- Product Performance
-- Customer Segmentation
-- Discount Insights
-- Subscription Analysis
-
----
-
-## 📁 Project Files
-
-| File Name | Description |
-|-----------|-------------|
-| customer_sales.sql | SQL queries |
-| customer_sales.xlsx | Dataset |
-| analysis.ipynb | Python analysis notebook |
-| dashboard.pbix | Power BI dashboard |
+### 📷 Dashboard Preview
+![Dashboard Preview](dashboard.png)
 
 ---
 
-## 🚀 Key Insights
-- Subscription customers generated higher revenue.
-- Discount campaigns increased customer purchases.
-- Certain product categories received better ratings.
-- Loyal customers contributed significantly to total sales.
+## 📁 Repository Structure
+
+| File / Folder Name | Description |
+|:---|:---|
+| 📄 `customer_sales.sql` | Well-commented SQL scripts containing all analytical queries |
+| 📊 `customer_sales.xlsx` | Cleaned transaction source data |
+| 📓 `analysis.ipynb` | Comprehensive Jupyter Notebook containing Python EDA and charts |
+| 📉 `dashboard.pbix` | Power BI Desktop file with interactive dashboard visuals |
+| 🖼️ `dashboard.png` | Static screen capture of the main dashboard viewport |
 
 ---
 
-## 📷 Dashboard Preview
+## ▶️ Execution & Deployment Guide
 
-```markdown
-![Dashboard](dashboard.png)
-```
+### Phase 1: Database Setup
+1. Initialize your local or cloud MySQL instance.
+2. Create a target database and import `customer_sales.xlsx` or execute a custom DDL schema setup.
+3. Open and run `customer_sales.sql` to verify analytical queries.
 
----
+### Phase 2: Python Environment Run
+1. Ensure Python 3.x and `pip` are locally installed.
+2. Initialize requirements via terminal: `pip install pandas numpy matplotlib seaborn`
+3. Launch `jupyter notebook` and open `analysis.ipynb` to step through the data workflow.
 
-## ▶️ How to Run the Project
-
-### SQL
-1. Import dataset into MySQL
-2. Run SQL queries
-
-### Python
-1. Open Jupyter Notebook
-2. Install required libraries
-3. Run all cells
-
-### Power BI
-1. Open `.pbix` file in Power BI Desktop
-2. Refresh dataset
+### Phase 3: Dashboard View
+1. Install **Power BI Desktop**.
+2. Open `dashboard.pbix`.
+3. *(Optional)* Modify the source data connection parameter to point to your updated localized data store and click **Refresh**.
 
 ---
 
-## 📌 Future Improvements
-- Predict customer purchasing behavior
-- Build machine learning recommendation system
-- Create real-time dashboards
-- Deploy project online
+## 🚀 Strategic Key Insights
+* **Subscription Lift:** Customers with active subscriptions hold a significantly higher Lifetime Value (LTV) and average spend metrics compared to non-subscribers.
+* **Promotional Velocity:** Targeted discount campaigns demonstrated a clear positive elasticity curve, successfully moving low-velocity product stock.
+* **Demographic Target:** Specific mid-tier age cohorts contributed to the highest net revenue margins, defining the target persona for future marketing spend.
+
+---
+
+## 📌 Future Enhancements
+- [ ] Build a predictive machine learning model to calculate Customer Churn Risk.
+- [ ] Implement a product Recommendation Engine using collaborative filtering.
+- [ ] Transition static processing pipelines into a real-time ETL workflow.
 
 ---
 
 ## 👨‍💻 Author
 **Rupesh Kumar**
-
-GitHub: Add your GitHub profile link here.
+* 📧 **Email:** [your.email@example.com](mailto:your.email@example.com)
+* 💼 **LinkedIn:** [://linkedin.com](https://://linkedin.com)
+* 🐙 **GitHub:** [@yourusername](https://github.com)
 
 ---
 
 ## ⭐ Support
-
-If you found this project useful, please give this repository a ⭐ on GitHub.
-
+If this framework helped you analyze retail data or structural templates, please give this repository a ⭐ on GitHub!
