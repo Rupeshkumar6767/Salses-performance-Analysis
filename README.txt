@@ -1,10 +1,5 @@
 # 📊 Customer Sales Analysis
 
-[![SQL](https://shields.io)](https://mysql.com)
-[![Python](https://shields.io)](https://python.org)
-[![Power BI](https://shields.io)](https://microsoft.com)
-[![Excel](https://shields.io)](https://microsoft.com)
-
 ## 📌 Project Overview
 The **Customer Sales Analysis** project focuses on analyzing customer purchasing behavior, sales trends, revenue generation, and customer segmentation using data-driven insights. 
 
